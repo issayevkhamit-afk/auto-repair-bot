@@ -256,3 +256,12 @@ def update_ai(
         db.commit()
     return RedirectResponse(url=f"/admin/{shop_id}/ai", status_code=303)
 
+@router.get("/{shop_id}/estimates", response_class=HTMLResponse)
+def admin_estimates(request: Request, shop_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    from app.models.estimate import Estimate
+    shop = db.query(Shop).filter(Shop.id == shop_id).first()
+    estimates = db.query(Estimate).filter(Estimate.shop_id == shop_id).order_by(Estimate.id.desc()).all()
+    return render(request, "admin/estimates.html", {"shop": shop, "estimates": estimates, "current_user": current_user})
+
