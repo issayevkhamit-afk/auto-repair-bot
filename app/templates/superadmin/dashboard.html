@@ -1,0 +1,56 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Shops</h5>
+                <h1 class="display-4">{{ total_shops }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Users</h5>
+                <h1 class="display-4">{{ total_users }}</h1>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Estimates</h5>
+                <h1 class="display-4">{{ total_estimates }}</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                System Health & Latest Activity
+            </div>
+            <div class="card-body">
+                <p>Everything is running smoothly.</p>
+                <!-- Further AI stats and usage charts could be placed here -->
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Quick Actions
+            </div>
+            <div class="card-body">
+                <a href="/superadmin/shops" class="btn btn-primary mb-2">Manage Shops</a>
+                <a href="/superadmin/users" class="btn btn-secondary mb-2">Manage Users</a>
+                <a href="/superadmin/translations" class="btn btn-warning mb-2">Edit Translations</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

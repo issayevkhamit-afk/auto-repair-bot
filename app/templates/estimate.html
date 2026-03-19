@@ -20,13 +20,17 @@
             <h1>{{ t('preliminary_estimate') }} #{{ estimate.id }}</h1>
             <p><strong>{{ t('car') }}:</strong> {{ estimate.car_year or '' }} {{ estimate.car_make or '' }} {{ estimate.car_model or '' }}</p>
             {% if shop.phone %}<p><strong>{{ t('phone') }}:</strong> {{ shop.phone }}</p>{% endif %}
-            {% if shop.address %}<p><strong>{{ t('address') }}:</strong> {{ shop.city }}, {{ shop.address }}</p>{% endif %}
-        </div>
-        <div>
-            <h2>{{ shop.name }}</h2>
-            {% if shop.logo_url %}
-            <img src="{{ shop.logo_url }}" class="logo" alt="Shop Logo">
+            {% if shop.whatsapp %}<p><strong>WhatsApp:</strong> {{ shop.whatsapp }}</p>{% endif %}
+            {% if shop.address or shop.city %}
+            <p><strong>{{ t('address') }}:</strong> {% if shop.city %}{{ shop.city }}, {% endif %}{{ shop.address or '' }}</p>
             {% endif %}
+            {% if shop.website %}<p><strong>Website:</strong> {{ shop.website }}</p>{% endif %}
+        </div>
+        <div style="text-align: right;">
+            {% if shop.logo_url %}
+            <img src="{{ shop.logo_url }}" class="logo" alt="Shop Logo" style="max-height: 100px; display: block; margin-bottom: 10px; margin-left: auto;">
+            {% endif %}
+            <h2>{{ shop.name }}</h2>
         </div>
     </div>
     

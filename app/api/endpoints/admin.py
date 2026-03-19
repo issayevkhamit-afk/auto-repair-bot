@@ -1,26 +1,80 @@
 import os
 import csv
 import io
-from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, Request, Form, UploadFile, File, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.shop import Shop, ShopAISettings, ShopPartsSettings
 from app.models.catalog import LaborPrice, PartPrice
+from app.models.user import User
+from app.core.i18n import t
+from app.core.security import verify_password, get_password_hash, create_access_token
+from app.api.deps import get_shop_admin
 
 router = APIRouter()
 templates = Jinja2Templates(directory=os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "templates"))
 
+def render(request: Request, template_name: str, context: dict):
+    lang = request.cookies.get("lang", "ru")
+    query_lang = request.query_params.get("lang")
+    if query_lang in ["en", "ru", "kz"]:
+        lang = query_lang
+    context["request"] = request
+    context["t"] = t
+    context["lang"] = lang
+    response = templates.TemplateResponse(template_name, context)
+    if query_lang:
+        response.set_cookie("lang", lang)
+    return response
+
+@router.get("/login", response_class=HTMLResponse)
+def login_page(request: Request):
+    return render(request, "admin/login.html", {"error": None})
+
+@router.post("/login")
+def login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.telegram_id == username).first()
+    if not user or user.role not in ["superadmin", "shop_admin"]:
+        return render(request, "admin/login.html", {"error": "Invalid credentials or missing permissions"})
+    
+    if user.hashed_password:
+        if not verify_password(password, user.hashed_password):
+            return render(request, "admin/login.html", {"error": "Invalid password"})
+    else:
+        # Seed password for first login
+        if password != "123456":
+            return render(request, "admin/login.html", {"error": "Use 123456 for initial login"})
+        user.hashed_password = get_password_hash(password)
+        db.commit()
+        
+    token = create_access_token(data={"sub": str(user.id)})
+    if user.role == "superadmin":
+        resp = RedirectResponse(url="/superadmin", status_code=303)
+    else:
+        resp = RedirectResponse(url=f"/admin/{user.shop_id}", status_code=303)
+    resp.set_cookie(key="access_token", value=f"Bearer {token}", httponly=True)
+    return resp
+
+@router.get("/logout")
+def logout():
+    resp = RedirectResponse(url="/admin/login", status_code=303)
+    resp.delete_cookie("access_token")
+    return resp
+
 @router.get("/{shop_id}", response_class=HTMLResponse)
-def admin_dashboard(request: Request, shop_id: int, db: Session = Depends(get_db)):
+def admin_dashboard(request: Request, shop_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     shop = db.query(Shop).filter(Shop.id == shop_id).first()
     if not shop:
         raise HTTPException(status_code=404, detail="Shop not found")
-    return templates.TemplateResponse("admin/dashboard.html", {"request": request, "shop": shop})
+    return render(request, "admin/dashboard.html", {"shop": shop, "current_user": current_user})
 
 @router.post("/{shop_id}/update-shop")
 def update_shop(
+    request: Request,
     shop_id: int, 
     name: str = Form(...), 
     currency: str = Form(...), 
@@ -28,9 +82,15 @@ def update_shop(
     phone: str = Form(""),
     address: str = Form(""),
     city: str = Form(""),
+    website: str = Form(""),
+    whatsapp: str = Form(""),
     markup_percentage: float = Form(0.0),
-    db: Session = Depends(get_db)
+    logo: UploadFile = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_shop_admin)
 ):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     shop = db.query(Shop).filter(Shop.id == shop_id).first()
     if shop:
         shop.name = name
@@ -39,18 +99,38 @@ def update_shop(
         shop.phone = phone
         shop.address = address
         shop.city = city
+        shop.website = website
+        shop.whatsapp = whatsapp
         shop.markup_percentage = markup_percentage
+        
+        if logo and logo.filename:
+            ext = logo.filename.split(".")[-1].lower()
+            if ext in ["jpg", "jpeg", "png", "webp"]:
+                import uuid
+                uid = uuid.uuid4().hex[:8]
+                filename = f"shop_{shop_id}_{uid}.{ext}"
+                target_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "uploads", "logos")
+                os.makedirs(target_dir, exist_ok=True)
+                file_path = os.path.join(target_dir, filename)
+                with open(file_path, "wb") as buffer:
+                    buffer.write(logo.file.read())
+                shop.logo_url = f"/static/uploads/logos/{filename}"
+                
         db.commit()
     return RedirectResponse(url=f"/admin/{shop_id}", status_code=303)
 
 @router.get("/{shop_id}/labor", response_class=HTMLResponse)
-def admin_labor(request: Request, shop_id: int, db: Session = Depends(get_db)):
+def admin_labor(request: Request, shop_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     shop = db.query(Shop).filter(Shop.id == shop_id).first()
     prices = db.query(LaborPrice).filter(LaborPrice.shop_id == shop_id).all()
-    return templates.TemplateResponse("admin/labor.html", {"request": request, "shop": shop, "prices": prices})
+    return render(request, "admin/labor.html", {"shop": shop, "prices": prices, "current_user": current_user})
 
 @router.post("/{shop_id}/labor/upload")
-async def admin_labor_upload(shop_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def admin_labor_upload(request: Request, shop_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     content = await file.read()
     decoded = content.decode('utf-8')
     reader = csv.DictReader(io.StringIO(decoded))
@@ -69,7 +149,9 @@ async def admin_labor_upload(shop_id: int, file: UploadFile = File(...), db: Ses
     return RedirectResponse(url=f"/admin/{shop_id}/labor", status_code=303)
 
 @router.get("/{shop_id}/labor/template")
-def download_labor_template(shop_id: int):
+def download_labor_template(shop_id: int, current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["labor_key", "price", "hours"])
@@ -78,7 +160,9 @@ def download_labor_template(shop_id: int):
     return StreamingResponse(output, media_type="text/csv", headers={"Content-Disposition": "attachment; filename=labor_template.csv"})
 
 @router.get("/{shop_id}/parts", response_class=HTMLResponse)
-def admin_parts(request: Request, shop_id: int, db: Session = Depends(get_db)):
+def admin_parts(request: Request, shop_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     shop = db.query(Shop).filter(Shop.id == shop_id).first()
     parts = db.query(PartPrice).filter(PartPrice.shop_id == shop_id).all()
     parts_settings = db.query(ShopPartsSettings).filter(ShopPartsSettings.shop_id == shop_id).first()
@@ -86,10 +170,12 @@ def admin_parts(request: Request, shop_id: int, db: Session = Depends(get_db)):
         parts_settings = ShopPartsSettings(shop_id=shop_id)
         db.add(parts_settings)
         db.commit()
-    return templates.TemplateResponse("admin/parts.html", {"request": request, "shop": shop, "parts": parts, "settings": parts_settings})
+    return render(request, "admin/parts.html", {"shop": shop, "parts": parts, "settings": parts_settings, "current_user": current_user})
 
 @router.post("/{shop_id}/parts/upload")
-async def admin_parts_upload(shop_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def admin_parts_upload(request: Request, shop_id: int, file: UploadFile = File(...), db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     content = await file.read()
     decoded = content.decode('utf-8')
     reader = csv.DictReader(io.StringIO(decoded))
@@ -108,7 +194,9 @@ async def admin_parts_upload(shop_id: int, file: UploadFile = File(...), db: Ses
     return RedirectResponse(url=f"/admin/{shop_id}/parts", status_code=303)
 
 @router.get("/{shop_id}/parts/template")
-def download_parts_template(shop_id: int):
+def download_parts_template(shop_id: int, current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow(["name", "avg_price", "category"])
@@ -118,11 +206,15 @@ def download_parts_template(shop_id: int):
 
 @router.post("/{shop_id}/parts/settings")
 def update_parts_settings(
+    request: Request,
     shop_id: int,
     pricing_mode: str = Form("manual"),
     preferred_brands: str = Form(""),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_shop_admin)
 ):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     settings = db.query(ShopPartsSettings).filter(ShopPartsSettings.shop_id == shop_id).first()
     if settings:
         settings.pricing_mode = pricing_mode
@@ -131,24 +223,30 @@ def update_parts_settings(
     return RedirectResponse(url=f"/admin/{shop_id}/parts", status_code=303)
     
 @router.get("/{shop_id}/ai", response_class=HTMLResponse)
-def admin_ai(request: Request, shop_id: int, db: Session = Depends(get_db)):
+def admin_ai(request: Request, shop_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_shop_admin)):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     shop = db.query(Shop).filter(Shop.id == shop_id).first()
     ai_settings = db.query(ShopAISettings).filter(ShopAISettings.shop_id == shop_id).first()
     if not ai_settings:
         ai_settings = ShopAISettings(shop_id=shop_id)
         db.add(ai_settings)
         db.commit()
-    return templates.TemplateResponse("admin/ai.html", {"request": request, "shop": shop, "settings": ai_settings})
+    return render(request, "admin/ai.html", {"shop": shop, "settings": ai_settings, "current_user": current_user})
 
 @router.post("/{shop_id}/ai/update")
 def update_ai(
+    request: Request,
     shop_id: int,
     response_style: str = Form("standard"),
     price_range_display: str = Form("average"),
     custom_instruction: str = Form(""),
     include_disclaimer: str = Form("off"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_shop_admin)
 ):
+    if current_user.role != "superadmin" and current_user.shop_id != shop_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
     ai = db.query(ShopAISettings).filter(ShopAISettings.shop_id == shop_id).first()
     if ai:
         ai.response_style = response_style
@@ -157,3 +255,4 @@ def update_ai(
         ai.include_disclaimer = True if include_disclaimer == "on" else False
         db.commit()
     return RedirectResponse(url=f"/admin/{shop_id}/ai", status_code=303)
+

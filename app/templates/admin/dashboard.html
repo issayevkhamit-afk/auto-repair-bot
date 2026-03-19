@@ -5,41 +5,60 @@
         <h2>General Shop Settings ({{ shop.name }})</h2>
     </div>
     <div class="card-body">
-        <form action="/admin/{{ shop.id }}/update-shop" method="post">
+        <form action="/admin/{{ shop.id }}/update-shop" method="post" enctype="multipart/form-data">
             <div class="mb-3">
-                <label>Shop Name</label>
+                <label>{{ t('company_name', lang) }}</label>
                 <input type="text" name="name" class="form-control" value="{{ shop.name }}" required>
             </div>
             <div class="mb-3">
-                <label>Currency</label>
+                <label>{{ t('currency', lang) }}</label>
                 <input type="text" name="currency" class="form-control" value="{{ shop.currency }}" required>
             </div>
             <div class="mb-3">
-                <label>Default Output Language</label>
+                <label>{{ t('default_output_language', lang) }}</label>
                 <select name="default_language" class="form-select">
-                    <option value="ru" {% if shop.default_language == 'ru' %}selected{% endif %}>Русский (Russian)</option>
-                    <option value="kz" {% if shop.default_language == 'kz' %}selected{% endif %}>Қазақша (Kazakh)</option>
+                    <option value="ru" {% if shop.default_language == 'ru' %}selected{% endif %}>{{ t('lang_ru', lang) }}</option>
+                    <option value="kz" {% if shop.default_language == 'kz' %}selected{% endif %}>{{ t('lang_kz', lang) }}</option>
+                    <option value="en" {% if shop.default_language == 'en' %}selected{% endif %}>{{ t('lang_en', lang) }}</option>
                 </select>
             </div>
             <div class="mb-3">
-                <label>Markup Percentage (e.g. 15 for 15%)</label>
+                <label>{{ t('markup_percentage', lang) }}</label>
                 <input type="number" step="0.1" name="markup_percentage" class="form-control" value="{{ shop.markup_percentage }}">
             </div>
             <hr>
-            <h4>Contact Info (for PDF)</h4>
+            <h4>{{ t('contact_info_pdf', lang) }} / {{ t('company_profile', lang) }}</h4>
             <div class="mb-3">
-                <label>Phone</label>
+                <label>{{ t('upload_logo', lang) }}</label>
+                {% if shop.logo_url %}
+                <div class="mb-2">
+                    <img src="{{ shop.logo_url }}" alt="{{ t('logo', lang) }}" style="max-height: 80px;" class="img-thumbnail">
+                </div>
+                {% endif %}
+                <input type="file" name="logo" class="form-control" accept="image/png, image/jpeg, image/jpg, image/webp">
+                <small class="text-muted">Max size: 5MB</small>
+            </div>
+            <div class="mb-3">
+                <label>{{ t('phone', lang) }}</label>
                 <input type="text" name="phone" class="form-control" value="{{ shop.phone or '' }}">
             </div>
             <div class="mb-3">
-                <label>Address</label>
+                <label>{{ t('address', lang) }}</label>
                 <input type="text" name="address" class="form-control" value="{{ shop.address or '' }}">
             </div>
             <div class="mb-3">
-                <label>City (For Market Prices Multiplier)</label>
-                <input type="text" name="city" class="form-control" value="{{ shop.city or '' }}" placeholder="Astana, Almaty...">
+                <label>{{ t('city', lang) }}</label>
+                <input type="text" name="city" class="form-control" value="{{ shop.city or '' }}">
             </div>
-            <button type="submit" class="btn btn-primary">Save Settings</button>
+            <div class="mb-3">
+                <label>{{ t('website', lang) }}</label>
+                <input type="text" name="website" class="form-control" value="{{ shop.website or '' }}">
+            </div>
+            <div class="mb-3">
+                <label>{{ t('whatsapp', lang) }}</label>
+                <input type="text" name="whatsapp" class="form-control" value="{{ shop.whatsapp or '' }}" placeholder="+7...">
+            </div>
+            <button type="submit" class="btn btn-primary">{{ t('save_company_profile', lang) }}</button>
         </form>
     </div>
 </div>

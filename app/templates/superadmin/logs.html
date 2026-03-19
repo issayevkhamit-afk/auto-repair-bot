@@ -1,0 +1,33 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <h5>System Logs</h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Type</th>
+                    <th>Message</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.created_at }}</td>
+                    <td><span class="badge bg-dark">{{ log.log_type }}</span></td>
+                    <td>{{ log.message }}</td>
+                    <td><pre class="bg-light p-1 mb-0" style="font-size: 0.8rem;">{{ log.details }}</pre></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center">No logs found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

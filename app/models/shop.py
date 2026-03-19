@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, Float, Text, ForeignKey, Boolean, DateTime
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from app.core.database import Base
 
 class Shop(Base):
@@ -15,7 +16,12 @@ class Shop(Base):
     phone = Column(String, nullable=True)
     address = Column(String, nullable=True)
     city = Column(String, nullable=True)
+    website = Column(String, nullable=True)
+    whatsapp = Column(String, nullable=True)
     default_language = Column(String, default="ru")
+    status = Column(String, default="active")
+    plan = Column(String, default="trial")
+    created_at = Column(DateTime, default=datetime.utcnow)
     
     users = relationship("User", back_populates="shop")
     labor_prices = relationship("LaborPrice", back_populates="shop")

@@ -1,0 +1,49 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-secondary text-white">
+        <h5>Manage Users</h5>
+    </div>
+    <div class="card-body">
+        <table class="table table-striped table-hover mt-3">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Telegram ID</th>
+                    <th>Shop ID</th>
+                    <th>Role</th>
+                    <th>Language</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.telegram_id }}</td>
+                    <td>{{ user.shop_id }}</td>
+                    <td>
+                        {% if user.role == 'superadmin' %}
+                            <span class="badge bg-danger">{{ user.role }}</span>
+                        {% elif user.role == 'shop_admin' %}
+                            <span class="badge bg-primary">{{ user.role }}</span>
+                        {% else %}
+                            <span class="badge bg-info">{{ user.role }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.language }}</td>
+                    <td>
+                        {% if user.status == 'active' %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-warning">{{ user.status }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

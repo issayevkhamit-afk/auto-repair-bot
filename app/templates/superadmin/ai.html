@@ -1,0 +1,32 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-dark text-white">
+        <h5>Global AI Settings</h5>
+    </div>
+    <div class="card-body">
+        <form action="/superadmin/ai/save" method="post">
+            <div class="mb-3">
+                <label>Model Name</label>
+                <input type="text" name="model_name" class="form-control" value="{{ settings.model_name or 'gpt-4o-mini' }}">
+            </div>
+            <div class="mb-3">
+                <label>System Prompt Base</label>
+                <textarea name="system_prompt" class="form-control" rows="4">{{ settings.system_prompt or '' }}</textarea>
+                <small class="text-muted">Global baseline prompt for all shops. Note: individual shop settings append to this.</small>
+            </div>
+            <div class="mb-3">
+                <label>Extraction Template</label>
+                <textarea name="extraction_template" class="form-control" rows="4">{{ settings.extraction_template or '' }}</textarea>
+                <small class="text-muted">Dictates how OpenAI formats the JSON block.</small>
+            </div>
+            <div class="mb-3">
+                <label>Global Pricing Fallback Rules</label>
+                <textarea name="pricing_rules" class="form-control" rows="4">{{ settings.pricing_rules or '' }}</textarea>
+            </div>
+            <button class="btn btn-primary" type="submit">Save Global AI Config</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

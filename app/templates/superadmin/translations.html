@@ -1,0 +1,40 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Translation Dictionary Manager</h5>
+        <button type="submit" form="transForm" class="btn btn-dark">Save Translations</button>
+    </div>
+    <div class="card-body">
+        <form id="transForm" action="/superadmin/translations/save" method="post">
+            <table class="table table-bordered table-hover mt-3">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Key</th>
+                        <th>EN (English)</th>
+                        <th>RU (Russian)</th>
+                        <th>KZ (Kazakh)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for key in keys %}
+                    <tr>
+                        <td class="fw-bold">{{ key }}</td>
+                        <td>
+                            <input type="text" class="form-control" name="trans_en_{{ key }}" value="{{ translations.get('en', {}).get(key, '') }}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="trans_ru_{{ key }}" value="{{ translations.get('ru', {}).get(key, '') }}">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" name="trans_kz_{{ key }}" value="{{ translations.get('kz', {}).get(key, '') }}">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+</div>
+{% endblock %}

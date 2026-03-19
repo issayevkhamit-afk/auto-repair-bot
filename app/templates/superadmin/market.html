@@ -1,0 +1,42 @@
+{% extends "superadmin/base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between">
+                <h5 class="mb-0">Market Labor Prices</h5>
+                <button class="btn btn-sm btn-light">Upload CSV</button>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead><tr><th>Key</th><th>RU Name</th><th>Avg Price</th><th>City</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for l in labor %}
+                        <tr><td>{{ l.labor_key }}</td><td>{{ l.name_ru }}</td><td>{{ l.avg_price }}</td><td>{{ l.city or 'General' }}</td><td><button class="btn btn-sm btn-primary">Edit</button></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
+                <h5 class="mb-0">Market Part Prices</h5>
+                <button class="btn btn-sm btn-light">Upload CSV</button>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead><tr><th>Key</th><th>RU Name</th><th>Avg Price</th><th>Brand</th><th>Actions</th></tr></thead>
+                    <tbody>
+                        {% for p in parts %}
+                        <tr><td>{{ p.part_key }}</td><td>{{ p.name_ru }}</td><td>{{ p.avg_price }}</td><td>{{ p.brand }}</td><td><button class="btn btn-sm btn-primary">Edit</button></td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
