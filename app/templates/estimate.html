@@ -2,54 +2,178 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Estimate</title>
+    <title>Estimate #{{ estimate.id }}</title>
     <style>
-        body { font-family: Arial, sans-serif; color: #333; }
-        .header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
-        .logo { max-width: 150px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .totals { margin-top: 20px; text-align: right; }
-        .review-warning { color: red; font-weight: bold; }
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        body { 
+            font-family: Arial, sans-serif; 
+            color: #333; 
+            font-size: 12px;
+            margin: 0;
+            padding: 0;
+        }
+        /* Top Header Container */
+        .top-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .header-left {
+            width: 50%;
+        }
+        .header-right {
+            width: 50%;
+            text-align: right;
+            font-size: 14px;
+        }
+        .logo { 
+            max-height: 80px; 
+            display: block;
+        }
+        .company-name {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        /* Titles Container */
+        .doc-titles {
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+        .doc-titles h1 {
+            font-size: 20px;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+        }
+        .doc-titles h2 {
+            font-size: 16px;
+            margin: 0;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        /* Estimate Info Container */
+        .estimate-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .vehicle-info {
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Disclaimer */
+        .disclaimer {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 20px;
+            font-style: italic;
+            border-left: 3px solid #ccc;
+            padding-left: 10px;
+        }
+
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #f9f9f9; 
+            font-size: 12px;
+        }
+        .totals { 
+            margin-top: 20px; 
+            text-align: right; 
+        }
+        .totals p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .totals h3 {
+            margin: 10px 0 0 0;
+            font-size: 18px;
+        }
+        .review-warning { 
+            color: red; 
+            font-weight: bold; 
+            font-size: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div>
-            <h1>{{ t('preliminary_estimate') }} #{{ estimate.id }}</h1>
-            <p><strong>{{ t('car') }}:</strong> {{ estimate.car_year or '' }} {{ estimate.car_make or '' }} {{ estimate.car_model or '' }}</p>
-            {% if shop.phone %}<p><strong>{{ t('phone') }}:</strong> {{ shop.phone }}</p>{% endif %}
-            {% if shop.whatsapp %}<p><strong>WhatsApp:</strong> {{ shop.whatsapp }}</p>{% endif %}
-            {% if shop.address or shop.city %}
-            <p><strong>{{ t('address') }}:</strong> {% if shop.city %}{{ shop.city }}, {% endif %}{{ shop.address or '' }}</p>
-            {% endif %}
-            {% if shop.website %}<p><strong>Website:</strong> {{ shop.website }}</p>{% endif %}
-        </div>
-        <div style="text-align: right;">
+    <div class="top-header">
+        <div class="header-left">
             {% if shop.logo_url %}
-            <img src="{{ shop.logo_url }}" class="logo" alt="Shop Logo" style="max-height: 100px; display: block; margin-bottom: 10px; margin-left: auto;">
+            <img src="{{ shop.logo_url }}" class="logo" alt="Logo">
+            {% else %}
+            <!-- Maintain layout if no logo -->
+            <div style="height: 80px;"></div>
             {% endif %}
-            <h2>{{ shop.name }}</h2>
+        </div>
+        <div class="header-right">
+            <div class="company-name">{{ shop.name }}</div>
+            {% if shop.phone %}<div>📞 {{ shop.phone }}</div>{% endif %}
+            {% if shop.address or shop.city %}
+            <div>📍 {% if shop.city %}{{ shop.city }}, {% endif %}{{ shop.address or '' }}</div>
+            {% endif %}
+            {% if shop.website %}<div>🌐 {{ shop.website }}</div>{% endif %}
+            {% if shop.whatsapp %}<div>📱 {{ shop.whatsapp }}</div>{% endif %}
         </div>
     </div>
+
+    <div class="doc-titles">
+        <h1>СМЕТА НА РЕМОНТ</h1>
+        <h2>ЖӨНДЕУ СМЕТАСЫ</h2>
+    </div>
+
+    <div class="estimate-info">
+        <div><strong>№:</strong> {{ "%06d"|format(estimate.id) }}</div>
+        <div>
+            <strong>Дата / Күні:</strong> 
+            {{ estimate.created_at.strftime('%d.%m.%Y') if estimate.created_at else '' }}
+        </div>
+    </div>
+
+    <div class="vehicle-info">
+        <strong>Автомобиль / Көлік:</strong><br>
+        {{ estimate.car_year or '' }} {{ estimate.car_make or '' }} {{ estimate.car_model or '' }}
+    </div>
+
+    <div class="disclaimer">
+        RU: Это предварительная смета. Итоговая стоимость может отличаться после диагностики.<br>
+        KZ: Бұл алдын ала смета. Соңғы баға тексеруден кейін өзгеруі мүмкін.
+    </div>
     
-    <h3>{{ t('labor') }} & {{ t('parts') }}</h3>
+    <h3>Работы / Жұмыстар &amp; Запчасти / Қосалқы бөлшектер</h3>
     <table>
         <tr>
-            <th>Type</th>
-            <th>Description</th>
-            <th>{{ t('qty') }}</th>
-            <th>{{ t('price') }}</th>
-            <th>{{ t('sum') }}</th>
+            <th>Тип / Түрі</th>
+            <th>Описание / Сипаттамасы</th>
+            <th>Кол-во / Саны</th>
+            <th>Цена / Бағасы</th>
+            <th>Сумма / Сомасы</th>
         </tr>
         {% for item in items %}
         <tr>
-            <td>{{ item.type | capitalize }}</td>
+            <td>{{ 'Работы / Жұмыс' if item.type == 'labor' else 'Запчасти / Бөлшек' }}</td>
             <td>
                 {{ item.description }}
                 {% if item.is_manual_review %}
-                <br><span class="review-warning">(Needs Price Review)</span>
+                <br><span class="review-warning">(Требует проверки / Тексеруді қажет етеді)</span>
                 {% endif %}
             </td>
             <td>{{ item.quantity }}</td>
@@ -60,13 +184,13 @@
     </table>
     
     <div class="totals">
-        <p><strong>{{ t('labor') }}:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_labor) }}</p>
-        <p><strong>{{ t('parts') }}:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_parts) }}</p>
-        <h3>{{ t('total') }}: {{ shop.currency }} {{ "%.2f"|format(estimate.grand_total) }}</h3>
+        <p><strong>Работы / Жұмыстар:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_labor) }}</p>
+        <p><strong>Запчасти / Бөлшектер:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_parts) }}</p>
+        <h3>Итого / Барлығы: {{ shop.currency }} {{ "%.2f"|format(estimate.grand_total) }}</h3>
     </div>
     
     {% if estimate.notes %}
-    <h3>Notes</h3>
+    <h3>Примечание / Ескерту</h3>
     <p>{{ estimate.notes }}</p>
     {% endif %}
 </body>
