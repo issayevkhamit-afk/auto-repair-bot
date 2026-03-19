@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Estimate</title>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 10px; }
+        .logo { max-width: 150px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .totals { margin-top: 20px; text-align: right; }
+        .review-warning { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>Estimate #{{ estimate.id }}</h1>
+            <p><strong>Vehicle:</strong> {{ estimate.car_year or 'N/A' }} {{ estimate.car_make or 'N/A' }} {{ estimate.car_model or '' }}</p>
+        </div>
+        <div>
+            <h2>{{ shop.name }}</h2>
+            {% if shop.logo_url %}
+            <img src="{{ shop.logo_url }}" class="logo" alt="Shop Logo">
+            {% endif %}
+        </div>
+    </div>
+    
+    <h3>Repairs & Parts</h3>
+    <table>
+        <tr>
+            <th>Type</th>
+            <th>Description</th>
+            <th>Qty/Hrs</th>
+            <th>Unit Price</th>
+            <th>Total</th>
+        </tr>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.type | capitalize }}</td>
+            <td>
+                {{ item.description }}
+                {% if item.is_manual_review %}
+                <br><span class="review-warning">(Needs Price Review)</span>
+                {% endif %}
+            </td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ shop.currency }} {{ "%.2f"|format(item.unit_price) }}</td>
+            <td>{{ shop.currency }} {{ "%.2f"|format(item.total) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    
+    <div class="totals">
+        <p><strong>Total Labor:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_labor) }}</p>
+        <p><strong>Total Parts:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_parts) }}</p>
+        <h3>Grand Total: {{ shop.currency }} {{ "%.2f"|format(estimate.grand_total) }}</h3>
+    </div>
+    
+    {% if estimate.notes %}
+    <h3>Notes</h3>
+    <p>{{ estimate.notes }}</p>
+    {% endif %}
+</body>
+</html>
