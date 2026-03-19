@@ -17,8 +17,10 @@
 <body>
     <div class="header">
         <div>
-            <h1>Estimate #{{ estimate.id }}</h1>
-            <p><strong>Vehicle:</strong> {{ estimate.car_year or 'N/A' }} {{ estimate.car_make or 'N/A' }} {{ estimate.car_model or '' }}</p>
+            <h1>{{ t('preliminary_estimate') }} #{{ estimate.id }}</h1>
+            <p><strong>{{ t('car') }}:</strong> {{ estimate.car_year or '' }} {{ estimate.car_make or '' }} {{ estimate.car_model or '' }}</p>
+            {% if shop.phone %}<p><strong>{{ t('phone') }}:</strong> {{ shop.phone }}</p>{% endif %}
+            {% if shop.address %}<p><strong>{{ t('address') }}:</strong> {{ shop.city }}, {{ shop.address }}</p>{% endif %}
         </div>
         <div>
             <h2>{{ shop.name }}</h2>
@@ -28,14 +30,14 @@
         </div>
     </div>
     
-    <h3>Repairs & Parts</h3>
+    <h3>{{ t('labor') }} & {{ t('parts') }}</h3>
     <table>
         <tr>
             <th>Type</th>
             <th>Description</th>
-            <th>Qty/Hrs</th>
-            <th>Unit Price</th>
-            <th>Total</th>
+            <th>{{ t('qty') }}</th>
+            <th>{{ t('price') }}</th>
+            <th>{{ t('sum') }}</th>
         </tr>
         {% for item in items %}
         <tr>
@@ -54,9 +56,9 @@
     </table>
     
     <div class="totals">
-        <p><strong>Total Labor:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_labor) }}</p>
-        <p><strong>Total Parts:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_parts) }}</p>
-        <h3>Grand Total: {{ shop.currency }} {{ "%.2f"|format(estimate.grand_total) }}</h3>
+        <p><strong>{{ t('labor') }}:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_labor) }}</p>
+        <p><strong>{{ t('parts') }}:</strong> {{ shop.currency }} {{ "%.2f"|format(estimate.total_parts) }}</p>
+        <h3>{{ t('total') }}: {{ shop.currency }} {{ "%.2f"|format(estimate.grand_total) }}</h3>
     </div>
     
     {% if estimate.notes %}

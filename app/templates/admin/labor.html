@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Upload Pricing (CSV)</div>
+            <div class="card-body">
+                <a href="/admin/{{ shop.id }}/labor/template" class="btn btn-sm btn-outline-secondary mb-3">Download Template</a>
+                <form action="/admin/{{ shop.id }}/labor/upload" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" name="file" class="form-control" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Rates</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">Current Custom Labor Prices</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Labor Key (Alias)</th>
+                            <th>Unit Price</th>
+                            <th>Hours</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in prices %}
+                        <tr>
+                            <td>{{ p.labor_key }}</td>
+                            <td>{{ p.price }}</td>
+                            <td>{{ p.hours }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

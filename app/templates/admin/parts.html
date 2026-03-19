@@ -1,0 +1,64 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-3">
+            <div class="card-header">Parts Sourcing Settings</div>
+            <div class="card-body">
+                <form action="/admin/{{ shop.id }}/parts/settings" method="post">
+                    <div class="mb-3">
+                        <label>Pricing Mode</label>
+                        <select name="pricing_mode" class="form-select">
+                            <option value="manual" {% if settings.pricing_mode == 'manual' %}selected{% endif %}>Manual / Custom Prices Only</option>
+                            <option value="catalog" {% if settings.pricing_mode == 'catalog' %}selected{% endif %}>Use Built-in Catalog</option>
+                            <option value="supplier_link" {% if settings.pricing_mode == 'supplier_link' %}selected{% endif %}>Supplier API Links (WIP)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Preferred Brands</label>
+                        <input type="text" name="preferred_brands" class="form-control" value="{{ settings.preferred_brands or '' }}" placeholder="Toyota, Mann-Filter">
+                    </div>
+                    <button type="submit" class="btn btn-success">Update Sourcing</button>
+                </form>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header">Upload Inventory/Prices</div>
+            <div class="card-body">
+                <a href="/admin/{{ shop.id }}/parts/template" class="btn btn-sm btn-outline-secondary mb-3">Download Template</a>
+                <form action="/admin/{{ shop.id }}/parts/upload" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input type="file" name="file" class="form-control" accept=".csv" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload Pars</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">Custom Part Prices</div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Part Name</th>
+                            <th>Avg Price</th>
+                            <th>Category</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in parts %}
+                        <tr>
+                            <td>{{ p.name }}</td>
+                            <td>{{ p.avg_price }}</td>
+                            <td>{{ p.category }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,12 @@
 from sqlalchemy.orm import Session
 from app.models.shop import Shop
-from app.models.catalog import LaborPrice, PartPrice
+from app.models.user import User
+from app.models.catalog import LaborPrice, PartPrice, PartsCatalog
+from app.models.market import MarketLaborPrice, MarketPartPrice, RegionMultiplier
 from app.models.estimate import Estimate, EstimateItem
 from app.schemas.estimate import ExtractedEstimateData
 from app.services.normalization import normalize_labor_items
+from app.core.i18n import t
 
 def calculate_and_create_estimate(
     db: Session, 
@@ -34,6 +37,7 @@ def calculate_and_create_estimate(
     total_labor = 0.0
     total_parts = 0.0
     has_manual_review = False
+    market_pricing_used = False
     
     # 2. Process Labor Items
     normalized_labor = normalize_labor_items(db, shop_id, extracted_data)
@@ -62,6 +66,22 @@ def calculate_and_create_estimate(
                 est_item.total = est_item.unit_price * est_item.quantity
                 est_item.is_manual_review = False
                 total_labor += est_item.total
+            else:
+                market_labor = db.query(MarketLaborPrice).filter(MarketLaborPrice.labor_key == lab["labor_key"]).first()
+                if market_labor:
+                    multiplier = 1.0
+                    if shop.city:
+                        reg_mult = db.query(RegionMultiplier).filter(RegionMultiplier.city_name == shop.city).first()
+                        if reg_mult:
+                            multiplier = reg_mult.multiplier
+                    
+                    est_item.unit_price = market_labor.avg_price * multiplier
+                    est_item.quantity = lab["hours"] if lab["hours"] else 1.0
+                    est_item.total = est_item.unit_price * est_item.quantity
+                    est_item.is_manual_review = False
+                    est_item.description += " (Market)"
+                    total_labor += est_item.total
+                    market_pricing_used = True
                 
         if est_item.is_manual_review:
             has_manual_review = True
@@ -80,18 +100,36 @@ def calculate_and_create_estimate(
             is_manual_review=True
         )
         
-        # Find exact or like match in PartPrice
+        # 3a. Find custom shop part price
         part_row = db.query(PartPrice).filter(
             PartPrice.shop_id == shop_id,
             PartPrice.name.ilike(f"%{part.description}%")
         ).first()
         
         if part_row:
-            # Apply markup
             est_item.unit_price = part_row.avg_price * (1 + markup)
             est_item.total = est_item.unit_price * est_item.quantity
             est_item.is_manual_review = False
             total_parts += est_item.total
+        else:
+            # 3b. Find in PartsCatalog
+            catalog_part = db.query(PartsCatalog).filter(PartsCatalog.name_ru.ilike(f"%{part.description}%")).first()
+            if catalog_part:
+                est_item.unit_price = catalog_part.avg_price * (1 + markup)
+                est_item.total = est_item.unit_price * est_item.quantity
+                est_item.is_manual_review = False
+                est_item.description += " (Catalog)"
+                total_parts += est_item.total
+            else:
+                # 3c. Find in MarketPartPrice
+                market_part = db.query(MarketPartPrice).filter(MarketPartPrice.name_ru.ilike(f"%{part.description}%")).first()
+                if market_part:
+                    est_item.unit_price = market_part.avg_price * (1 + markup)
+                    est_item.total = est_item.unit_price * est_item.quantity
+                    est_item.is_manual_review = False
+                    est_item.description += " (Market)"
+                    total_parts += est_item.total
+                    market_pricing_used = True
             
         if est_item.is_manual_review:
             has_manual_review = True
@@ -104,6 +142,16 @@ def calculate_and_create_estimate(
     
     if has_manual_review:
         estimate.status = "needs_confirmation"
+        
+    if market_pricing_used:
+        user = db.query(User).filter(User.id == user_id).first()
+        lang = user.language if user else shop.default_language
+        disclaimer = t("disclaimer_market", lang)
+        
+        if estimate.notes:
+            estimate.notes = estimate.notes + "\n\n" + disclaimer
+        else:
+            estimate.notes = disclaimer
         
     db.commit()
     db.refresh(estimate)

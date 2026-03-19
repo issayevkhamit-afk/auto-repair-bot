@@ -16,17 +16,17 @@ def normalize_labor_items(db: Session, shop_id: int, extracted_data: ExtractedEs
     normalized_items = []
     
     aliases = db.query(LaborAlias).filter(LaborAlias.shop_id == shop_id).all()
-    # Create a mapping dictionary for fast lookup
-    alias_map = {normalize_text(alias.keyword): alias.labor_key for alias in aliases}
     
     for item in extracted_data.labor_items:
         clean_desc = normalize_text(item.description)
         matched_key = None
         
         # Exact match or substring search simple logic
-        for keyword, lab_key in alias_map.items():
-            if keyword in clean_desc:
-                matched_key = lab_key
+        # Support comma separated synonyms for RU/KZ slang (e.g. 'замена масла, май ауыстыру')
+        for alias in aliases:
+            keywords = [normalize_text(k) for k in alias.keyword.split(',')]
+            if any(k and k in clean_desc for k in keywords):
+                matched_key = alias.labor_key
                 break
                 
         normalized_items.append({

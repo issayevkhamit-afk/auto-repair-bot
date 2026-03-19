@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h2>AI Extraction Settings</h2>
+    </div>
+    <div class="card-body">
+        <form action="/admin/{{ shop.id }}/ai/update" method="post">
+            <div class="mb-3">
+                <label>Response Style</label>
+                <select name="response_style" class="form-select">
+                    <option value="standard" {% if settings.response_style == 'standard' %}selected{% endif %}>Standard</option>
+                    <option value="short" {% if settings.response_style == 'short' %}selected{% endif %}>Short & Concise</option>
+                    <option value="detailed" {% if settings.response_style == 'detailed' %}selected{% endif %}>Detailed</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>Price Range Display</label>
+                <select name="price_range_display" class="form-select">
+                    <option value="average" {% if settings.price_range_display == 'average' %}selected{% endif %}>Average (Exact Number)</option>
+                    <option value="range" {% if settings.price_range_display == 'range' %}selected{% endif %}>Range (e.g. 5000 - 7000)</option>
+                </select>
+            </div>
+            <div class="mb-3 form-check">
+                <input type="checkbox" name="include_disclaimer" class="form-check-input" id="disc" {% if settings.include_disclaimer %}checked{% endif %}>
+                <label class="form-check-label" for="disc">Include Liability Disclaimer on PDFs automatically?</label>
+            </div>
+            <div class="mb-3">
+                <label>Custom Instruction for the AI</label>
+                <textarea name="custom_instruction" class="form-control" rows="3" placeholder="Always recommend XYZ oil brand...">{{ settings.custom_instruction or '' }}</textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Save AI Settings</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
