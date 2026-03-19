@@ -1,6 +1,5 @@
 FROM python:3.11-slim
 
-# Install system dependencies for WeasyPrint and PostgreSQL
 RUN apt-get update && apt-get install -y \
     build-essential \
     python3-dev \
@@ -24,7 +23,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Expose port 8080 for Cloud Run
-EXPOSE 8080
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"
