@@ -43,6 +43,12 @@ def upgrade() -> None:
         op.add_column('users',
             sa.Column('hashed_password', sa.String(), nullable=True))
 
+    if not _has_column('users', 'username'):
+        op.add_column('users',
+            sa.Column('username', sa.String(), nullable=True))
+        # Create index separately (not inline) to avoid issues on partial runs
+        op.create_index('ix_users_username', 'users', ['username'], unique=True)
+
     # ---- shops table: branding and SaaS meta columns -------------------------
     for col_name, col_def in [
         ('logo_url',         sa.Column('logo_url', sa.String(), nullable=True)),

@@ -8,6 +8,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     shop_id = Column(Integer, ForeignKey("shops.id"), nullable=False)
     telegram_id = Column(String, unique=True, index=True, nullable=False)
+    username = Column(String, unique=True, index=True, nullable=True)
     role = Column(String, default="mechanic") # superadmin, shop_admin, mechanic
     language = Column(String, default="ru") # ru, kz, en
     status = Column(String, default="active")

@@ -35,19 +35,19 @@ def login_page(request: Request):
 
 @router.post("/login")
 def login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.telegram_id == username).first()
+    # Look up by username first, fall back to telegram_id
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        user = db.query(User).filter(User.telegram_id == username).first()
+    
     if not user or user.role not in ["superadmin", "shop_admin"]:
         return render(request, "admin/login.html", {"error": "Invalid credentials or missing permissions"})
     
-    if user.hashed_password:
-        if not verify_password(password, user.hashed_password):
-            return render(request, "admin/login.html", {"error": "Invalid password"})
-    else:
-        # Seed password for first login
-        if password != "123456":
-            return render(request, "admin/login.html", {"error": "Use 123456 for initial login"})
-        user.hashed_password = get_password_hash(password)
-        db.commit()
+    if not user.hashed_password:
+        return render(request, "admin/login.html", {"error": "No password set for this user. Contact superadmin."})
+    
+    if not verify_password(password, user.hashed_password):
+        return render(request, "admin/login.html", {"error": "Invalid password"})
         
     token = create_access_token(data={"sub": str(user.id)})
     if user.role == "superadmin":

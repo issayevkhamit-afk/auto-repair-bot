@@ -25,18 +25,14 @@ app.include_router(superadmin.router, prefix="/superadmin", tags=["Superadmin"])
 
 @app.on_event("startup")
 def seed_superadmin():
-    """Create a default superadmin user on first boot if none exists."""
+    """Ensure a default superadmin user with username='admin' always exists."""
     from app.models.user import User
     from app.models.shop import Shop
     from app.core.security import get_password_hash
 
     db = SessionLocal()
     try:
-        existing = db.query(User).filter(User.role == "superadmin").first()
-        if existing:
-            return  # already seeded
-
-        # Need at least one shop for the FK — create a platform master shop
+        # Ensure the platform master shop exists
         master_shop = db.query(Shop).filter(Shop.name == "__platform__").first()
         if not master_shop:
             master_shop = Shop(name="__platform__", currency="KZT", status="active", plan="internal")
@@ -44,20 +40,39 @@ def seed_superadmin():
             db.commit()
             db.refresh(master_shop)
 
-        superadmin_user = User(
-            shop_id=master_shop.id,
-            telegram_id="999999999",
-            role="superadmin",
-            language="ru",
-            status="active",
-            hashed_password=get_password_hash("123456"),
-        )
-        db.add(superadmin_user)
-        db.commit()
-        logger.info("Default superadmin created: admin (telegram_id=999999999) / 123456")
-        print("✅ Default superadmin created: telegram_id=999999999 / password=123456")
+        # Try to find by username first, then by telegram_id
+        user = db.query(User).filter(User.username == "admin").first()
+        if not user:
+            user = db.query(User).filter(User.telegram_id == "999999999").first()
+
+        if user:
+            # Update existing user to ensure superadmin access and known password
+            user.role = "superadmin"
+            user.status = "active"
+            user.username = "admin"
+            user.hashed_password = get_password_hash("123456")
+            db.commit()
+            print("✅ Default superadmin updated: username=admin / password=123456")
+        else:
+            # Create fresh superadmin
+            user = User(
+                shop_id=master_shop.id,
+                telegram_id="999999999",
+                username="admin",
+                role="superadmin",
+                language="ru",
+                status="active",
+                hashed_password=get_password_hash("123456"),
+            )
+            db.add(user)
+            db.commit()
+            print("✅ Default superadmin created: username=admin / password=123456")
+
+        logger.info("Ensured default superadmin exists: username=admin telegram_id=999999999 password=123456")
     except Exception as e:
+        db.rollback()
         logger.error(f"Failed to seed superadmin: {e}", exc_info=True)
+        print(f"❌ Superadmin seed failed: {e}")
     finally:
         db.close()
 
