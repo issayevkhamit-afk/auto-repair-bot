@@ -33,6 +33,61 @@ def render(request: Request, template_name: str, context: dict):
 def login_page(request: Request):
     return render(request, "admin/login.html", {"error": None})
 
+
+@router.get("/setup")
+def setup_admin(db: Session = Depends(get_db)):
+    """
+    One-time setup endpoint — creates / resets the default superadmin to admin/123456.
+    Accessible without authentication. Safe to run multiple times.
+    Visit /admin/setup once after deployment to guarantee the admin user exists.
+    """
+    from app.models.shop import Shop
+    from sqlalchemy import text as _text
+
+    try:
+        # Ensure platform shop exists
+        master_shop = db.query(Shop).filter(Shop.name == "__platform__").first()
+        if not master_shop:
+            master_shop = Shop(name="__platform__", currency="KZT")
+            db.add(master_shop)
+            db.flush()   # get id without full commit
+
+        new_hash = get_password_hash("123456")
+
+        # Wipe any conflicting username="admin" entry first (keeps db clean)
+        db.execute(_text(
+            "UPDATE users SET username = NULL WHERE username = 'admin' AND telegram_id != '999999999'"
+        ))
+        db.flush()
+
+        existing = db.execute(_text(
+            "SELECT id FROM users WHERE telegram_id = '999999999'"
+        )).fetchone()
+
+        if existing:
+            db.execute(_text(
+                "UPDATE users SET username='admin', role='superadmin', status='active', "
+                "hashed_password=:h WHERE telegram_id='999999999'"
+            ), {"h": new_hash})
+            msg = "updated"
+        else:
+            db.execute(_text(
+                "INSERT INTO users (shop_id, telegram_id, username, role, language, status, hashed_password) "
+                "VALUES (:sid, '999999999', 'admin', 'superadmin', 'ru', 'active', :h)"
+            ), {"sid": master_shop.id, "h": new_hash})
+            msg = "created"
+
+        db.commit()
+        return {
+            "status": "ok",
+            "message": f"Superadmin {msg}. Login at /admin/login",
+            "username": "admin",
+            "password": "123456",
+        }
+    except Exception as e:
+        db.rollback()
+        return {"status": "error", "detail": str(e)}
+
 @router.post("/login")
 def login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
     print(f"LOGIN ATTEMPT: username='{username}'")
