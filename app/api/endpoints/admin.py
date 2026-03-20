@@ -35,18 +35,29 @@ def login_page(request: Request):
 
 @router.post("/login")
 def login_post(request: Request, username: str = Form(...), password: str = Form(...), db: Session = Depends(get_db)):
+    print(f"LOGIN ATTEMPT: username='{username}'")
+    
     # Look up by username first, fall back to telegram_id
     user = db.query(User).filter(User.username == username).first()
     if not user:
         user = db.query(User).filter(User.telegram_id == username).first()
     
-    if not user or user.role not in ["superadmin", "shop_admin"]:
-        return render(request, "admin/login.html", {"error": "Invalid credentials or missing permissions"})
+    if not user:
+        print("USER FOUND: None")
+        return render(request, "admin/login.html", {"error": "User not found"})
+    
+    print(f"USER FOUND: username={user.username!r} telegram_id={user.telegram_id!r} role={user.role!r} status={user.status!r}")
+    
+    if user.role not in ["superadmin", "shop_admin"]:
+        return render(request, "admin/login.html", {"error": f"Access denied. Role '{user.role}' is not allowed."})
     
     if not user.hashed_password:
-        return render(request, "admin/login.html", {"error": "No password set for this user. Contact superadmin."})
+        return render(request, "admin/login.html", {"error": "No password set. Contact platform admin."})
     
-    if not verify_password(password, user.hashed_password):
+    pw_ok = verify_password(password, user.hashed_password)
+    print(f"PASSWORD CHECK: plain='{password}' hash_prefix='{user.hashed_password[:20]}...' result={pw_ok}")
+    
+    if not pw_ok:
         return render(request, "admin/login.html", {"error": "Invalid password"})
         
     token = create_access_token(data={"sub": str(user.id)})

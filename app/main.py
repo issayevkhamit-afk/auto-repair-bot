@@ -69,6 +69,21 @@ def seed_superadmin():
             print("✅ Default superadmin created: username=admin / password=123456")
 
         logger.info("Ensured default superadmin exists: username=admin telegram_id=999999999 password=123456")
+        
+        # Self-test: immediately verify the stored hash works
+        from app.core.security import verify_password as _verify
+        db.refresh(user)
+        test_ok = _verify("123456", user.hashed_password)
+        print(f"✅ SELF-TEST verify_password('123456', stored_hash) = {test_ok}")
+        if not test_ok:
+            print("❌ SELF-TEST FAILED — bcrypt mismatch, re-hashing with bcrypt directly")
+            import bcrypt
+            raw_hash = bcrypt.hashpw(b"123456", bcrypt.gensalt()).decode("utf-8")
+            user.hashed_password = raw_hash
+            db.commit()
+            db.refresh(user)
+            test_ok2 = _verify("123456", user.hashed_password)
+            print(f"✅ RE-HASH SELF-TEST = {test_ok2}")
     except Exception as e:
         db.rollback()
         logger.error(f"Failed to seed superadmin: {e}", exc_info=True)
