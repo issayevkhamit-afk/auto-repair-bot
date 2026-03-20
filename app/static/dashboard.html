@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AutoServis — My Account</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy:    #1b3a5c;
+      --navy-dk: #122843;
+      --teal:    #00879a;
+      --teal-lt: #009db5;
+      --blue:    #0068a5;
+      --gray-bg: #f4f6f8;
+      --gray-lt: #e8ecf0;
+      --gray-md: #9aacba;
+      --text:    #1a2b3c;
+      --text-sm: #4a6070;
+      --green:   #2ba84a;
+      --white:   #ffffff;
+    }
+
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--gray-bg); color: var(--text); font-size: 14px; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      background: var(--navy-dk);
+      padding: 6px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 16px;
+    }
+    .topbar a { color: #a8c4d8; font-size: 12px; text-decoration: none; }
+    .topbar a:hover { color: #fff; }
+
+    /* ── LANGUAGE SWITCHER ── */
+    .lang-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 20px;
+      padding: 3px 6px;
+    }
+    .lang-btn {
+      background: none;
+      border: none;
+      color: #a8c4d8;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 14px;
+      letter-spacing: 0.5px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .lang-btn.active {
+      background: var(--teal);
+      color: #fff;
+    }
+    .lang-btn:hover:not(.active) { color: #fff; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg, var(--teal), var(--blue));
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .logo-text { line-height: 1.1; }
+    .logo-text .brand { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 0.5px; }
+    .logo-text .sub   { font-size: 11px; color: #a8c4d8; letter-spacing: 1px; text-transform: uppercase; }
+
+    .header-right { display: flex; align-items: center; gap: 20px; }
+    .signout-btn {
+      display: flex; align-items: center; gap: 6px;
+      color: #a8c4d8; font-size: 13px; cursor: pointer;
+      border: none; background: none;
+      transition: color 0.2s;
+    }
+    .signout-btn:hover { color: #fff; }
+    .signout-btn svg { width: 16px; height: 16px; }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--navy);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+    }
+    .nav-item {
+      color: #a8c4d8;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 14px 18px;
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .nav-item:hover { color: #fff; }
+    .nav-item.active { color: #fff; border-bottom-color: var(--teal); }
+
+    /* ── PAGE LAYOUT ── */
+    .page-header {
+      background: var(--white);
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--gray-lt);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .page-header h1 { font-size: 15px; color: var(--text-sm); }
+    .page-header h1 span { color: var(--text); font-weight: 600; font-size: 18px; }
+    .account-num { font-size: 13px; color: var(--text-sm); margin-top: 2px; }
+    .settings-link {
+      display: flex; align-items: center; gap: 6px;
+      color: var(--teal); font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none; background: none;
+    }
+
+    .main { padding: 24px 32px; display: grid; grid-template-columns: 1fr 1fr 300px; gap: 20px; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 12px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-sm);
+      border-bottom: 1px solid var(--gray-lt);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .card-header a { color: var(--teal); font-weight: 600; font-size: 12px; letter-spacing: 0; text-transform: none; text-decoration: none; }
+    .card-header a:hover { text-decoration: underline; }
+    .card-body { padding: 18px; }
+
+    /* BILLING CARD */
+    .bill-notice {
+      background: #f0f5f9;
+      border-radius: 4px;
+      padding: 10px 14px;
+      display: flex; gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      font-size: 12px;
+      color: var(--text-sm);
+    }
+    .bill-notice .icon { font-size: 16px; margin-top: 1px; }
+    .bill-amount { font-size: 36px; font-weight: 700; color: var(--text); line-height: 1; margin-bottom: 6px; }
+    .bill-amount sup { font-size: 18px; vertical-align: super; }
+    .bill-due { font-size: 12px; color: var(--text-sm); margin-bottom: 16px; display: flex; align-items: center; gap: 6px; }
+    .pay-btn {
+      width: 100%;
+      background: var(--teal);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .pay-btn:hover { background: var(--teal-lt); }
+    .autopay-row {
+      display: flex; align-items: center; justify-content: space-between;
+      border-top: 1px solid var(--gray-lt);
+      padding-top: 14px; margin-top: 14px;
+      font-size: 12px; color: var(--text-sm);
+    }
+    .autopay-row .amount { color: var(--text); font-weight: 600; }
+    .chev { color: var(--teal); margin-left: 6px; }
+
+    /* PROMO CARD */
+    .promo-card {
+      background: var(--white);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 32px 24px; text-align: center;
+    }
+    .promo-icon { font-size: 48px; margin-bottom: 14px; opacity: 0.7; }
+    .promo-card p { font-size: 13px; color: var(--text-sm); margin-bottom: 18px; }
+    .unlock-btn {
+      display: flex; align-items: center; gap: 8px;
+      border: 1.5px solid var(--teal);
+      color: var(--teal);
+      background: none;
+      border-radius: 4px;
+      padding: 10px 20px;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .unlock-btn:hover { background: var(--teal); color: #fff; }
+    .not-now { margin-top: 12px; color: var(--teal); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .not-now:hover { text-decoration: underline; }
+
+    /* RIGHT COLUMN */
+    .right-col { display: flex; flex-direction: column; gap: 16px; }
+
+    /* BILLING & PAYMENT */
+    .bp-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--gray-lt);
+      font-size: 13px;
+    }
+    .bp-row:last-child { border-bottom: none; }
+    .bp-row .label { color: var(--text-sm); }
+    .status-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; font-weight: 600;
+    }
+    .status-badge.enrolled { color: var(--green); }
+    .status-badge.not-enrolled { color: var(--gray-md); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .dot.green { background: var(--green); }
+    .dot.gray  { background: var(--gray-md); }
+
+    /* QUICK LINKS */
+    .quick-link {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--gray-lt);
+      font-size: 13px; color: var(--teal);
+      cursor: pointer; text-decoration: none;
+    }
+    .quick-link:last-child { border-bottom: none; }
+    .quick-link .ql-left { display: flex; align-items: center; gap: 10px; }
+    .quick-link .ql-icon { font-size: 14px; opacity: 0.7; }
+    .quick-link:hover { color: var(--blue); }
+
+    /* BOTTOM SECTION */
+    .bottom { padding: 0 32px 24px; display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+    .promo-banner {
+      background: var(--white);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 18px 22px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .promo-banner .pb-icon { font-size: 28px; }
+    .promo-banner .pb-text h3 { font-size: 13px; font-weight: 600; color: var(--teal); margin-bottom: 4px; }
+    .promo-banner .pb-text p  { font-size: 12px; color: var(--text-sm); }
+    .pb-chev { margin-left: auto; color: var(--teal); font-size: 20px; }
+
+    /* ALERTS CARD */
+    .alerts-card {
+      background: #f0f7f9;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 18px 20px;
+      display: flex; gap: 16px; align-items: flex-start;
+    }
+    .alerts-card .al-icon { font-size: 28px; }
+    .alerts-card h3 { font-size: 13px; font-weight: 700; color: var(--teal); margin-bottom: 4px; }
+    .alerts-card p  { font-size: 12px; color: var(--text-sm); }
+    .al-chev { margin-left: auto; color: var(--teal); font-size: 20px; align-self: center; cursor: pointer; }
+
+    /* BILLING COMPARISON */
+    .billing-comp { padding: 0 32px 32px; }
+    .section-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-header h2 { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--text-sm); }
+    .section-header a { color: var(--teal); font-size: 12px; font-weight: 600; text-decoration: none; }
+    .comp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .comp-card {
+      background: var(--white);
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 18px;
+    }
+    .comp-card h3 { font-size: 12px; color: var(--text-sm); margin-bottom: 14px; font-weight: 600; }
+    .bar-wrap { display: flex; align-items: flex-end; gap: 16px; }
+    .bar-item { text-align: center; }
+    .bar-item .bar-label { font-size: 11px; color: var(--text-sm); margin-bottom: 4px; }
+    .bar-item .bar-amt   { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .bar { border-radius: 3px 3px 0 0; width: 40px; background: var(--teal); }
+    .bar.prev { background: var(--gray-lt); }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy-dk);
+      padding: 20px 32px;
+      text-align: center;
+      color: #6a8fa8;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="#" data-i18n="contact">Связаться с нами</a>
+  <a href="#" data-i18n="help">Помощь</a>
+  <div class="lang-switcher">
+    <button class="lang-btn" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" onclick="setLang('kz')">KZ</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔧</div>
+    <div class="logo-text">
+      <div class="brand">AutoServis</div>
+      <div class="sub" data-i18n="tagline">Управление Автосервисом</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="signout-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <polyline points="16 17 21 12 16 7"/>
+        <line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span data-i18n="signout">Выйти</span>
+    </button>
+  </div>
+</header>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-item active" data-i18n="nav_account">Мой Аккаунт ▾</div>
+  <div class="nav-item" data-i18n="nav_services">Услуги и Цены</div>
+  <div class="nav-item" data-i18n="nav_repairs">Ремонты</div>
+  <div class="nav-item" data-i18n="nav_support">Поддержка</div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div>
+    <h1 data-i18n="greeting_prefix">Здравствуйте, <span>Khamit!</span></h1>
+    <div class="account-num" data-i18n="account_num">Аккаунт #910193121266</div>
+  </div>
+  <button class="settings-link">
+    ⚙️ <span data-i18n="settings">Настройки</span>
+  </button>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main">
+
+  <!-- BILLING SUMMARY -->
+  <div class="card">
+    <div class="card-header">
+      <span data-i18n="summary">СВОДКА</span>
+      <a href="#" data-i18n="view_history">Просмотреть историю ›</a>
+    </div>
+    <div class="card-body">
+      <div class="bill-notice">
+        <span class="icon">ℹ️</span>
+        <span data-i18n="bill_notice">Счёт за текущий период ещё не сформирован.</span>
+      </div>
+      <div class="bill-amount"><sup>₸</sup>137 640</div>
+      <div class="bill-due">
+        <span data-i18n="due_date">Оплата до 14 апр. 2026</span>
+        <span>ⓘ</span>
+      </div>
+      <button class="pay-btn" data-i18n="pay_btn">Оплатить счёт</button>
+      <div class="autopay-row">
+        <div>
+          <div style="font-weight:600;font-size:12px" data-i18n="payment_scheduled">Платёж запланирован</div>
+          <div data-i18n="autopay_detail">Автоплатёж 14 апреля 2026</div>
+        </div>
+        <div><span class="amount">₸137 640</span><span class="chev">›</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMO -->
+  <div class="promo-card">
+    <div class="promo-icon">🔒</div>
+    <p data-i18n="promo_text">Получите персонализированные предложения для вашего аккаунта.</p>
+    <button class="unlock-btn">🔓 <span data-i18n="unlock_btn">Открыть дополнительные функции</span></button>
+    <div class="not-now"><span data-i18n="not_now">Не сейчас</span> ›</div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- BILLING & PAYMENT -->
+    <div class="card">
+      <div class="card-header">
+        <span data-i18n="billing_payment">ОПЛАТА И СЧЕТА</span>
+        <a href="#" data-i18n="view_all">Все опции ›</a>
+      </div>
+      <div class="card-body" style="padding:10px 18px">
+        <div class="bp-row">
+          <span class="label" data-i18n="autopay">Автоплатёж</span>
+          <span class="status-badge enrolled"><span class="dot green"></span><span data-i18n="enrolled">Подключён</span> <span class="chev">›</span></span>
+        </div>
+        <div class="bp-row">
+          <span class="label" data-i18n="paperless">Электронный счёт</span>
+          <span class="status-badge enrolled"><span class="dot green"></span><span data-i18n="enrolled">Подключён</span> <span class="chev">›</span></span>
+        </div>
+        <div class="bp-row">
+          <span class="label" data-i18n="due_date_pick">Выбор даты платежа</span>
+          <span class="status-badge not-enrolled"><span class="dot gray"></span><span data-i18n="not_enrolled">Не подключён</span> <span class="chev">›</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="card">
+      <div class="card-header" data-i18n="quick_links">БЫСТРЫЕ ССЫЛКИ</div>
+      <div class="card-body" style="padding:6px 18px">
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">🛡</span><span data-i18n="ql1">Безопасность аккаунта</span></span> ›</a>
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">🏦</span><span data-i18n="ql2">Банковские счета</span></span> ›</a>
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">💬</span><span data-i18n="ql3">Настройки уведомлений</span></span> ›</a>
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">📊</span><span data-i18n="ql4">Сравнить тарифы</span></span> ›</a>
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">🤝</span><span data-i18n="ql5">Помощь в оплате</span></span> ›</a>
+        <a class="quick-link" href="#"><span class="ql-left"><span class="ql-icon">🤖</span><span data-i18n="ql6">Telegram-бот</span></span> ›</a>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /main -->
+
+<!-- BOTTOM PROMO + ALERTS -->
+<div class="bottom">
+  <div class="promo-banner">
+    <div class="pb-icon">🏠</div>
+    <div class="pb-text">
+      <h3 data-i18n="promo_banner_title">Расскажите о вашем автосервисе</h3>
+      <p data-i18n="promo_banner_desc">Экономьте на запчастях, подключив каталог поставщиков и умное ценообразование.</p>
+    </div>
+    <div class="pb-chev">›</div>
+  </div>
+  <div class="alerts-card">
+    <div class="al-icon">🔔</div>
+    <div>
+      <h3 data-i18n="alerts_title">Уведомления и оповещения</h3>
+      <p data-i18n="alerts_desc">Управляйте уведомлениями о ремонтах, счетах и статусах заказов.</p>
+    </div>
+    <div class="al-chev">›</div>
+  </div>
+</div>
+
+<!-- BILLING COMPARISON -->
+<div class="billing-comp">
+  <div class="section-header">
+    <h2 data-i18n="billing_comparison">СРАВНЕНИЕ ЗА ПЕРИОД</h2>
+    <a href="#" data-i18n="view_usage">Просмотреть отчёт ›</a>
+  </div>
+  <div class="comp-grid">
+    <div class="comp-card">
+      <h3 data-i18n="last_period">Прошлый период</h3>
+      <div class="bar-wrap">
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="labor">Работы</div>
+          <div class="bar-amt">₸323 930</div>
+          <div class="bar" style="height:80px"></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="parts">Запчасти</div>
+          <div class="bar-amt">₸184 500</div>
+          <div class="bar" style="height:46px"></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="other">Прочее</div>
+          <div class="bar-amt">₸42 000</div>
+          <div class="bar" style="height:10px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="comp-card">
+      <h3 data-i18n="last_year">Прошлый год</h3>
+      <div class="bar-wrap">
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="labor">Работы</div>
+          <div class="bar-amt">₸290 000</div>
+          <div class="bar prev" style="height:70px"></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="parts">Запчасти</div>
+          <div class="bar-amt">₸160 000</div>
+          <div class="bar prev" style="height:39px"></div>
+        </div>
+        <div class="bar-item">
+          <div class="bar-label" data-i18n="other">Прочее</div>
+          <div class="bar-amt">₸38 000</div>
+          <div class="bar prev" style="height:9px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  © 2026 AutoServis SaaS — <span data-i18n="footer_privacy">Политика конфиденциальности</span> · <span data-i18n="footer_terms">Условия использования</span>
+</footer>
+
+<script>
+const i18n = {
+  ru: {
+    contact: "Связаться с нами",
+    help: "Помощь",
+    tagline: "Управление Автосервисом",
+    signout: "Выйти",
+    nav_account: "Мой Аккаунт ▾",
+    nav_services: "Услуги и Цены",
+    nav_repairs: "Ремонты",
+    nav_support: "Поддержка",
+    greeting_prefix: "Здравствуйте, <span>Khamit!</span>",
+    account_num: "Аккаунт #910193121266",
+    settings: "Настройки",
+    summary: "СВОДКА",
+    view_history: "Просмотреть историю ›",
+    bill_notice: "Счёт за текущий период ещё не сформирован.",
+    due_date: "Оплата до 14 апр. 2026",
+    pay_btn: "Оплатить счёт",
+    payment_scheduled: "Платёж запланирован",
+    autopay_detail: "Автоплатёж 14 апреля 2026",
+    promo_text: "Получите персонализированные предложения для вашего аккаунта.",
+    unlock_btn: "Открыть дополнительные функции",
+    not_now: "Не сейчас",
+    billing_payment: "ОПЛАТА И СЧЕТА",
+    view_all: "Все опции ›",
+    autopay: "Автоплатёж",
+    paperless: "Электронный счёт",
+    due_date_pick: "Выбор даты платежа",
+    enrolled: "Подключён",
+    not_enrolled: "Не подключён",
+    quick_links: "БЫСТРЫЕ ССЫЛКИ",
+    ql1: "Безопасность аккаунта",
+    ql2: "Банковские счета",
+    ql3: "Настройки уведомлений",
+    ql4: "Сравнить тарифы",
+    ql5: "Помощь в оплате",
+    ql6: "Telegram-бот",
+    promo_banner_title: "Расскажите о вашем автосервисе",
+    promo_banner_desc: "Экономьте на запчастях, подключив каталог поставщиков и умное ценообразование.",
+    alerts_title: "Уведомления и оповещения",
+    alerts_desc: "Управляйте уведомлениями о ремонтах, счетах и статусах заказов.",
+    billing_comparison: "СРАВНЕНИЕ ЗА ПЕРИОД",
+    view_usage: "Просмотреть отчёт ›",
+    last_period: "Прошлый период",
+    last_year: "Прошлый год",
+    labor: "Работы",
+    parts: "Запчасти",
+    other: "Прочее",
+    footer_privacy: "Политика конфиденциальности",
+    footer_terms: "Условия использования",
+  },
+  kz: {
+    contact: "Бізбен байланысу",
+    help: "Көмек",
+    tagline: "Автосервисті басқару",
+    signout: "Шығу",
+    nav_account: "Менің аккаунтым ▾",
+    nav_services: "Қызметтер мен бағалар",
+    nav_repairs: "Жөндеулер",
+    nav_support: "Қолдау",
+    greeting_prefix: "Сәлеметсіз бе, <span>Khamit!</span>",
+    account_num: "Аккаунт #910193121266",
+    settings: "Параметрлер",
+    summary: "ЖИЫНТЫҚ",
+    view_history: "Тарихты қарау ›",
+    bill_notice: "Ағымдағы кезеңнің шоты әлі дайын емес.",
+    due_date: "Төлем мерзімі: 14 сәуір 2026",
+    pay_btn: "Шотты төлеу",
+    payment_scheduled: "Төлем жоспарланды",
+    autopay_detail: "Автотөлем 14 сәуір 2026",
+    promo_text: "Аккаунтыңызға арнайы ұсыныстар алыңыз.",
+    unlock_btn: "Қосымша мүмкіндіктерді ашу",
+    not_now: "Кейінірек",
+    billing_payment: "ТӨЛЕМ ЖӘНЕ ШОТТАР",
+    view_all: "Барлық опциялар ›",
+    autopay: "Автотөлем",
+    paperless: "Электронды шот",
+    due_date_pick: "Төлем күнін таңдау",
+    enrolled: "Қосылған",
+    not_enrolled: "Қосылмаған",
+    quick_links: "ЖЫЛДАМ СІЛТЕМЕЛЕР",
+    ql1: "Аккаунт қауіпсіздігі",
+    ql2: "Банк шоттары",
+    ql3: "Хабарландыру параметрлері",
+    ql4: "Тарифтерді салыстыру",
+    ql5: "Төлем көмегі",
+    ql6: "Telegram-бот",
+    promo_banner_title: "Автосервисіңіз туралы айтыңыз",
+    promo_banner_desc: "Жеткізушілер каталогын және ақылды баға белгілеуді қосу арқылы үнемдеңіз.",
+    alerts_title: "Хабарландырулар мен ескертулер",
+    alerts_desc: "Жөндеулер, шоттар және тапсырыс күйлері туралы хабарландыруларды басқарыңыз.",
+    billing_comparison: "КЕЗЕҢ БОЙЫНША САЛЫСТЫРУ",
+    view_usage: "Есепті қарау ›",
+    last_period: "Өткен кезең",
+    last_year: "Өткен жыл",
+    labor: "Жұмыстар",
+    parts: "Бөлшектер",
+    other: "Басқа",
+    footer_privacy: "Құпиялылық саясаты",
+    footer_terms: "Пайдалану шарттары",
+  },
+  en: {
+    contact: "Contact Us",
+    help: "Help",
+    tagline: "Auto Repair Management",
+    signout: "Sign Out",
+    nav_account: "My Account ▾",
+    nav_services: "Services & Pricing",
+    nav_repairs: "Repairs",
+    nav_support: "Support",
+    greeting_prefix: "Hi, <span>Khamit!</span>",
+    account_num: "Account #910193121266",
+    settings: "Settings",
+    summary: "SUMMARY",
+    view_history: "View History ›",
+    bill_notice: "Your bill is not available to view yet.",
+    due_date: "Payment due Apr 14, 2026",
+    pay_btn: "Pay Bill",
+    payment_scheduled: "Payment Scheduled",
+    autopay_detail: "Auto Pay on April 14, 2026",
+    promo_text: "Get personalized offers for your account.",
+    unlock_btn: "Unlock Additional Options",
+    not_now: "Not Now",
+    billing_payment: "BILLING & PAYMENT",
+    view_all: "View All Options ›",
+    autopay: "Auto Pay",
+    paperless: "Paperless Billing",
+    due_date_pick: "Pick Your Due Date",
+    enrolled: "Enrolled",
+    not_enrolled: "Not Enrolled",
+    quick_links: "QUICK LINKS",
+    ql1: "Manage Sign In Security",
+    ql2: "Manage Bank Accounts",
+    ql3: "Notification Preferences",
+    ql4: "Compare My Rates",
+    ql5: "Payment Assistance",
+    ql6: "Telegram Bot",
+    promo_banner_title: "Tell Us About Your Shop",
+    promo_banner_desc: "Save on parts by connecting supplier catalogs and smart pricing engine.",
+    alerts_title: "Alerts & Notifications",
+    alerts_desc: "Manage your repair alerts, bill notifications, and order status preferences.",
+    billing_comparison: "BILLING CYCLE COMPARISON",
+    view_usage: "View Report ›",
+    last_period: "Last Bill Cycle",
+    last_year: "Last Year",
+    labor: "Labor",
+    parts: "Parts",
+    other: "Other",
+    footer_privacy: "Privacy Policy",
+    footer_terms: "Terms of Service",
+  }
+};
+
+let currentLang = 'ru';
+
+function setLang(lang) {
+  currentLang = lang;
+  const dict = i18n[lang];
+
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  // Update active button
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.textContent === lang.toUpperCase());
+  });
+
+  // Update html lang attribute
+  document.documentElement.lang = lang;
+}
+
+// Initialize
+setLang('ru');
+</script>
+</body>
+</html>
